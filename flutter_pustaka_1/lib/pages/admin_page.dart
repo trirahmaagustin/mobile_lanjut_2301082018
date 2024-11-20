@@ -22,7 +22,7 @@ class AdminMenuPage extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/picture1.png'),
+                image: AssetImage('images/buku.jpeg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -52,7 +52,7 @@ class AdminMenuPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const FormAnggota(),
+                        builder: (context) => FormAnggota(),
                       ),
                     );
                   },
@@ -76,7 +76,7 @@ class AdminMenuPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const FormBuku(),
+                        builder: (context) => FormBuku(),
                       ),
                     );
                   },

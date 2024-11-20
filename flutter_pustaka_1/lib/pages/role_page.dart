@@ -9,7 +9,7 @@ class RolePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFFA47458),
+        backgroundColor: const Color(0xFFA47458),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -23,7 +23,7 @@ class RolePage extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/picture1.png'),
+                image: AssetImage('images/buku.jpeg'),
                 fit: BoxFit.cover,
               ),
             ),

@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pustaka_1/pages/anggota_list_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/anggota.dart';
 
 class FormAnggota extends StatelessWidget {
-  const FormAnggota({Key? key}) : super(key: key);
+  static const routeName = '/add-anggota';
+
+  final TextEditingController namaController = TextEditingController();
+  final TextEditingController kodeController = TextEditingController();
+  final TextEditingController nimController = TextEditingController();
+  final TextEditingController alamatController = TextEditingController();
+  final TextEditingController jekelController = TextEditingController();
+
+  FormAnggota({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final anggotas = Provider.of<Anggotas>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFA47458),
@@ -14,31 +27,33 @@ class FormAnggota extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: () {
+              _submitData(context, anggotas);
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
-          // Background image as in AdminMenuPage
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/picture1.png'),
+                image: AssetImage('images/buku.jpeg'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           Scrollbar(
-            thumbVisibility: true, // Membuat scrollbar selalu terlihat
+            thumbVisibility: true,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.person_add,
-                      size: 60,
-                      color: Colors.white,
-                    ),
+                    const Icon(Icons.person_add, size: 60, color: Colors.white),
                     const SizedBox(height: 20),
                     const Text(
                       'Input Data Anggota',
@@ -49,82 +64,19 @@ class FormAnggota extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    // Nama field
-                    SizedBox(
-                      width: 300, // Lebar TextFormField sesuai kebutuhan
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Nama',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(namaController, 'Nama'),
                     const SizedBox(height: 15),
-
-                    // Kode field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Kode',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(kodeController, 'Kode'),
                     const SizedBox(height: 15),
-
-                    // NIM field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'NIM',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(nimController, 'NIM'),
                     const SizedBox(height: 15),
-
-                    // Alamat field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Alamat',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(alamatController, 'Alamat'),
                     const SizedBox(height: 15),
-
-                    // Jenis Kelamin field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Jenis Kelamin',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-
-                    // Elevated Button to submit the form
+                    _buildTextField(jekelController, 'Jenis Kelamin'),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Data Anggota Disimpan')),
-                        );
+                        _submitData(context, anggotas);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFA47458),
@@ -146,5 +98,47 @@ class FormAnggota extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return SizedBox(
+      width: 300,
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color(0xFFA47458),
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
+  void _submitData(BuildContext context, Anggotas anggotas) {
+    anggotas
+        .addAnggota(
+      namaController.text,
+      kodeController.text,
+      nimController.text,
+      jekelController.text,
+      alamatController.text,
+    )
+        .then((response) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Data Anggota Berhasil Disimpan"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, AnggotaListScreen.routeName);
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Gagal Menyimpan Data"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    });
   }
 }

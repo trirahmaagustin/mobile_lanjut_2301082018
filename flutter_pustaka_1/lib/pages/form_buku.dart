@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/buku.dart';
 
 class FormBuku extends StatelessWidget {
-  const FormBuku({Key? key}) : super(key: key);
+  static const routeName = '/add-buku';
+
+  final TextEditingController kodeController = TextEditingController();
+  final TextEditingController judulController = TextEditingController();
+  final TextEditingController pengarangController = TextEditingController();
+  final TextEditingController penerbitController = TextEditingController();
+  final TextEditingController tahunController = TextEditingController();
+
+  FormBuku({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Ambil provider Bukus
+    final bukus = Provider.of<Bukus>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFA47458),
@@ -14,31 +27,34 @@ class FormBuku extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: () {
+              _submitData(context, bukus);
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
-          // Background image as in AdminMenuPage
+          // Background Image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('images/picture1.png'),
+                image: AssetImage('images/buku.jpeg'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           Scrollbar(
-            thumbVisibility: true, // Menampilkan scrollbar secara default
+            thumbVisibility: true,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Center(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.my_library_books,
-                      size: 60,
-                      color: Colors.white,
-                    ),
+                    const Icon(Icons.my_library_books, size: 60, color: Colors.white),
                     const SizedBox(height: 20),
                     const Text(
                       'Input Data Buku',
@@ -49,77 +65,25 @@ class FormBuku extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    // Kode Buku field
-                    SizedBox(
-                      width: 300, // Menetapkan lebar form input
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Kode Buku',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    // Text Fields
+                    _buildTextField(kodeController, 'Kode Buku'),
                     const SizedBox(height: 15),
-                    // Judul Buku field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Judul Buku',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(judulController, 'Judul Buku'),
                     const SizedBox(height: 15),
-                    // Pengarang Buku field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Pengarang Buku',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(pengarangController, 'Pengarang Buku'),
                     const SizedBox(height: 15),
-                    // Penerbit Buku field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Penerbit Buku',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
+                    _buildTextField(penerbitController, 'Penerbit Buku'),
                     const SizedBox(height: 15),
-                    // Tahun Terbit field
-                    SizedBox(
-                      width: 300,
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: Color(0xFFA47458),
-                          labelText: 'Tahun Terbit',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
+                    _buildTextField(
+                      tahunController,
+                      'Tahun Terbit',
+                      inputType: TextInputType.number,
                     ),
-                    const SizedBox(height: 15),
-                    // Elevated Button to submit the form
+                    const SizedBox(height: 20),
+                    // Submit Button
                     ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Data Buku Disimpan')),
-                        );
+                        _submitData(context, bukus);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFA47458),
@@ -141,5 +105,76 @@ class FormBuku extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {TextInputType inputType = TextInputType.text}) {
+    return SizedBox(
+      width: 300,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: inputType,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color(0xFFA47458),
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
+  void _submitData(BuildContext context, bukus) {
+    // Validasi input
+    if (kodeController.text.isEmpty ||
+        judulController.text.isEmpty ||
+        pengarangController.text.isEmpty ||
+        penerbitController.text.isEmpty ||
+        tahunController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Semua field harus diisi!"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Validasi tahun harus angka
+    if (int.tryParse(tahunController.text) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Tahun harus berupa angka!"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    // Submit data ke provider
+    bukus
+        .addBuku(
+      kodeController.text,
+      judulController.text,
+      pengarangController.text,
+      penerbitController.text,
+      tahunController.text,
+    )
+        .then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Data Buku Berhasil Disimpan"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, '/anggota-list');
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Gagal Menyimpan Data: $error"),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    });
   }
 }
