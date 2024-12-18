@@ -1,0 +1,163 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../models/peminjaman.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+class PeminjamanProvider with ChangeNotifier {
+  final List<Peminjaman> _allPeminjaman = [];
+  final String baseUrl = kIsWeb
+  ? 'http://localhost/perpustakaan/peminjaman.php';
+  : 'http://localhost/perpustakaan/peminjaman.php';
+  
+
+  List<Peminjaman> get allPeminjaman => _allPeminjaman;
+  int get jumlahPeminjaman => _allPeminjaman.length;
+
+  Peminjaman selectById(String id) {
+    return _allPeminjaman.firstWhere((element) => element.id == id);
+  }
+
+  Future<void> addPeminjaman(DateTime tanggal_pinjam, DateTime tanggal_pengembalian, int? anggota, 
+      int? buku) async {
+    try {
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          "tanggal_pinjam": tanggal_pinjam,
+          "tanggal_kembali": tanggal_kembali,
+          "anggota": anggota,
+          "buku": buku,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData['status'] == 'success') {
+          final peminjaman = Peminjaman(
+            id: responseData['data']['id'].toString(),
+            tanggal_pinjam: tanggal_pinjam,
+            tanggal_kembali: tanggal_kembali,
+            anggota: anggota,
+            buku: buku,
+          );
+
+          _allPeminjaman.add(peminjaman);
+          notifyListeners();
+        } else {
+          throw Exception(responseData['message']);
+        }
+      } else {
+        throw Exception('Gagal menambahkan peminjaman');
+      }
+    } catch (err) {
+      rethrow;
+    }
+  }
+
+  Future<void> editPeminjaman(
+    String id,
+    String tanggal_pinjam,
+    String? tanggal_kembali,
+    String? anggota,
+    String? buku,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          "tanggal_pinjam": tanggal_pinjam,
+          "tanggal_kembali": tanggal_kembali,
+          "anggota": anggota,
+          "buku": buku,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData['status'] == 'success') {
+          final peminjamanIndex = _allPeminjaman.indexWhere((element) => element.id == id);
+          if (peminjamanIndex >= 0) {
+            _allPeminjaman[peminjamanIndex] = Peminjaman(
+              id: id,
+              tanggal_pinjam: tanggal_pinjam,
+              tanggal_kembali: tanggal_kembali,
+              anggota: anggota,
+              buku: buku,
+            );
+            notifyListeners();
+          }
+        } else {
+          throw Exception(responseData['message']);
+        }
+      } else {
+        throw Exception('Gagal mengubah data peminjaman');
+      }
+    } catch (err) {
+      rethrow;
+    }
+  }
+
+  Future<void> deletePeminjaman(String id) async {
+    try {
+      final response = await http.delete(Uri.parse('$baseUrl/$id'));
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData['status'] == 'success') {
+          _allPeminjaman.removeWhere((element) => element.id == id);
+          notifyListeners();
+        } else {
+          throw Exception(responseData['message']);
+        }
+      } else {
+        throw Exception('Gagal menghapus peminjaman');
+      }
+    } catch (err) {
+      rethrow;
+    }
+  }
+
+  Future<void> initializeData() async {
+    try {
+      final response = await http.get(Uri.parse(baseUrl));
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData['status'] == 'success') {
+          final List<Peminjaman> loadedPeminjaman = [];
+          final peminjamanList = responseData['data'] as List<dynamic>;
+
+          for (var peminjamanData in peminjamanList) {
+            loadedPeminjaman.add(Peminjaman.fromJson(peminjamanData));
+          }
+
+          _allPeminjaman.clear();
+          _allPeminjaman.addAll(loadedPeminjaman);
+          notifyListeners();
+        } else {
+          throw Exception(responseData['message']);
+        }
+      } else {
+        throw Exception('Gagal memuat data peminjaman');
+      }
+    } catch (err) {
+      rethrow;
+    }
+  }
+
+  // Method untuk mencari peminjaman berdasarkan tanggal peminjaman
+  List<Peminjaman> searchPeminjaman(String keyword) {
+    return _allPeminjaman.where((peminjaman) {
+      return peminjaman.tanggal_peminjaman.toLowerCase().contains(keyword.toLowerCase()) ??
+              false);
+    }).toList();
+  }
+}
+
