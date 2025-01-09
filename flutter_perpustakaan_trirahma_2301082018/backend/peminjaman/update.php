@@ -17,7 +17,7 @@ $anggota_id = $data['anggota_id'] ?? null;
 $buku_id = $data['buku_id'] ?? null;
 
 try {
-    $sql = "UPDATE peminjaman SET tanggal_pinjam = ?, tanggal_kembali = ?, 
+    $sql = "UPDATE peminjaman SET tanggal_pinjam = ?, tanggal_kembali = ?,
             anggota_id = ?, buku_id = ? WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssiii", $tanggal_pinjam, $tanggal_kembali, $anggota_id, $buku_id, $id);

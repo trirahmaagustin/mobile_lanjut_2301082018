@@ -21,6 +21,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
   late Future<List<Peminjaman>> _peminjamanList;
   List<Anggota> _anggotaList = [];
   List<Buku> _bukuList = [];
+  //DateTime? tanggalKembali;
 
   @override
   void initState() {
@@ -62,7 +63,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
@@ -78,11 +79,12 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: ListTile(
-                  title: Text('${peminjaman.namaPeminjam} - ${peminjaman.judulBuku}'),
+                  title: Text(
+                      '${peminjaman.namaPeminjam} - ${peminjaman.judulBuku}'),
                   subtitle: Text(
-                    'Pinjam: ${DateFormat('dd/MM/yyyy').format(peminjaman.tanggalPinjam)}\n'
-                    'Kembali: ${DateFormat('dd/MM/yyyy').format(peminjaman.tanggalKembali)}'
-                  ),
+                      'Pinjam: ${DateFormat('dd/MM/yyyy').format(peminjaman.tanggalPinjam)}\n'
+                      'Kembali: ${DateFormat('dd/MM/yyyy').format(peminjaman.tanggalKembali)}'
+                      ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -111,16 +113,18 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
 
   void _showFormDialog(Peminjaman? peminjaman) {
     final formKey = GlobalKey<FormState>();
-    DateTime selectedTanggalPinjam = peminjaman?.tanggalPinjam ?? DateTime.now();
-    DateTime selectedTanggalKembali = peminjaman?.tanggalKembali ?? 
-        DateTime.now().add(const Duration(days: 7));
+    DateTime selectedTanggalPinjam =
+        peminjaman?.tanggalPinjam ?? DateTime.now();
+    DateTime selectedTanggalKembali = peminjaman?.tanggalKembali ??
+    DateTime.now().add(const Duration(days: 7));
     int? selectedAnggotaId = peminjaman?.anggotaId;
     int? selectedBukuId = peminjaman?.bukuId;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(peminjaman == null ? 'Tambah Peminjaman' : 'Edit Peminjaman'),
+        title:
+            Text(peminjaman == null ? 'Tambah Peminjaman' : 'Edit Peminjaman'),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -168,8 +172,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
                 ListTile(
                   title: const Text('Tanggal Pinjam'),
                   subtitle: Text(
-                    DateFormat('dd/MM/yyyy').format(selectedTanggalPinjam)
-                  ),
+                      DateFormat('dd/MM/yyyy').format(selectedTanggalPinjam)),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -262,9 +265,8 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Hapus Peminjaman'),
         content: Text(
-          'Apakah Anda yakin ingin menghapus peminjaman ${peminjaman.judulBuku} '
-          'oleh ${peminjaman.namaPeminjam}?'
-        ),
+            'Apakah Anda yakin ingin menghapus peminjaman ${peminjaman.judulBuku} '
+            'oleh ${peminjaman.namaPeminjam}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -292,4 +294,4 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
       ),
     );
   }
-} 
+}

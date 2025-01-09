@@ -13,6 +13,8 @@ class PengembalianScreen extends StatefulWidget {
 class _PengembalianScreenState extends State<PengembalianScreen> {
   final PengembalianService _pengembalianService = PengembalianService();
   late Future<List<Pengembalian>> _pengembalianList;
+  Map<String, dynamic>? _selectedPeminjaman;
+  DateTime? _selectedTanggalDikembalikan;
 
   @override
   void initState() {
@@ -115,22 +117,23 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
 
   Widget _buildPengembalianForm(List<Map<String, dynamic>> activePeminjaman) {
     final formKey = GlobalKey<FormState>();
-    Map<String, dynamic>? selectedPeminjaman;
-    DateTime selectedTanggalDikembalikan = DateTime.now();
 
     return StatefulBuilder(
       builder: (context, setState) {
-        // Hitung keterlambatan dan denda
         bool isTerlambat = false;
         double denda = 0;
-        if (selectedPeminjaman != null) {
-          final tanggalKembali =
-              DateTime.parse(selectedPeminjaman!['tanggal_kembali']);
-          isTerlambat = selectedTanggalDikembalikan.isAfter(tanggalKembali);
+
+        if (_selectedPeminjaman != null &&
+            _selectedTanggalDikembalikan != null) {
+          final tanggalPinjam =
+              DateTime.parse(_selectedPeminjaman!['tanggal_pinjam']);
+          final selisihHari =
+              _selectedTanggalDikembalikan!.difference(tanggalPinjam).inDays;
+          isTerlambat = selisihHari > 7;
+
           if (isTerlambat) {
-            final selisihHari =
-                selectedTanggalDikembalikan.difference(tanggalKembali).inDays;
-            denda = selisihHari * 1000.0; // Denda Rp 1.000 per hari
+            final hariTerlambat = selisihHari - 7;
+            denda = hariTerlambat * 1000.0;
           }
         }
 
@@ -143,7 +146,7 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<Map<String, dynamic>>(
-                    value: selectedPeminjaman,
+                    value: _selectedPeminjaman,
                     decoration:
                         const InputDecoration(labelText: 'Pilih Peminjaman'),
                     items: activePeminjaman.map((peminjaman) {
@@ -155,7 +158,7 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        selectedPeminjaman = value;
+                        _selectedPeminjaman = value;
                       });
                     },
                     validator: (value) {
@@ -165,24 +168,29 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
                   ),
                   ListTile(
                     title: const Text('Tanggal Pengembalian'),
-                    subtitle: Text(DateFormat('dd/MM/yyyy')
-                        .format(selectedTanggalDikembalikan)),
+                    subtitle: Text(
+                      _selectedTanggalDikembalikan != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(_selectedTanggalDikembalikan!)
+                          : 'Pilih tanggal',
+                    ),
                     trailing: const Icon(Icons.calendar_today),
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
-                        initialDate: selectedTanggalDikembalikan,
+                        initialDate:
+                            _selectedTanggalDikembalikan ?? DateTime.now(),
                         firstDate: DateTime(2000),
-                        lastDate: DateTime.now(),
+                        lastDate: DateTime(2100),
                       );
                       if (picked != null) {
                         setState(() {
-                          selectedTanggalDikembalikan = picked;
+                          _selectedTanggalDikembalikan = picked;
                         });
                       }
                     },
                   ),
-                  if (selectedPeminjaman != null) ...[
+                  if (_selectedPeminjaman != null) ...[
                     const SizedBox(height: 16),
                     Text(
                       'Status: ${isTerlambat ? "Terlambat" : "Tepat Waktu"}',
@@ -206,13 +214,13 @@ class _PengembalianScreenState extends State<PengembalianScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate() &&
-                    selectedPeminjaman != null) {
+                    _selectedPeminjaman != null) {
                   final newPengembalian = Pengembalian(
-                    tanggalDikembalikan: selectedTanggalDikembalikan,
+                    tanggalDikembalikan: _selectedTanggalDikembalikan!,
                     terlambat: isTerlambat,
                     denda: denda,
                     peminjamanId:
-                        int.parse(selectedPeminjaman!['id'].toString()),
+                        int.parse(_selectedPeminjaman!['id'].toString()),
                   );
 
                   try {
